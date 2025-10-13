@@ -1,4 +1,4 @@
-import { easyScrape } from "./lib/index.js";
+import { easyScrape } from "easy-scrape";
 
 const html = `
   <div class="article">

@@ -13,9 +13,9 @@ export interface ScrapeField {
   data?: Record<string, ScrapeField | string>;
 }
 
-export function scrapeItCore(
+export function easyScrape(
   input: string | CheerioAPI,
   schema: Record<string, ScrapeField | string>
 ): Record<string, any>;
 
-export default scrapeItCore;
+export default easyScrape;
