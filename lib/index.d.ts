@@ -26,6 +26,41 @@ export type MapFunction = (element: cheerio.Cheerio<cheerio.AnyNode>, $: cheerio
 export type FilterFunction = (element: cheerio.Cheerio<cheerio.AnyNode>, index: number) => boolean;
 
 /**
+ * Function to validate extracted values
+ */
+export type ValidateFunction = (value: any) => boolean;
+
+/**
+ * Conditional function to determine if extraction should proceed
+ */
+export type IfFunction = ($: cheerio.CheerioAPI, context?: cheerio.Cheerio<cheerio.AnyNode>) => boolean;
+
+/**
+ * Text extraction mode
+ */
+export type TextMode = 'text' | 'ownText' | 'deepText';
+
+/**
+ * Sibling navigation direction
+ */
+export type SiblingDirection = 'next' | 'prev' | 'nextAll' | 'prevAll';
+
+/**
+ * Table parsing options
+ */
+export interface TableOptions {
+  /**
+   * Whether the first row contains headers
+   */
+  headers?: boolean;
+
+  /**
+   * Selector for table rows (default: 'tr')
+   */
+  selector?: string;
+}
+
+/**
  * Scraping options for a field
  */
 export interface ScrapeOptions {
@@ -140,6 +175,103 @@ export interface ScrapeOptions {
    * Include _index property in list items
    */
   includeIndex?: boolean;
+
+  // NEW FEATURES
+
+  /**
+   * Navigate to parent element(s)
+   * - Number: Move up N levels
+   * - String: Find parent matching selector
+   */
+  parent?: number | string;
+
+  /**
+   * Find ancestor element matching selector (returns first match)
+   */
+  parents?: string;
+
+  /**
+   * Navigate to sibling elements
+   */
+  siblings?: SiblingDirection;
+
+  /**
+   * Selector to filter siblings
+   */
+  siblingSelector?: string;
+
+  /**
+   * Text extraction mode
+   * - 'text': All text including descendants (default)
+   * - 'ownText': Only direct text nodes
+   * - 'deepText': All text including nested elements
+   */
+  textMode?: TextMode;
+
+  /**
+   * Separator for joining multiple text nodes
+   */
+  separator?: string;
+
+  /**
+   * Resolve relative URLs to absolute using baseUrl option
+   */
+  resolveUrl?: boolean;
+
+  /**
+   * Conditional function - only extract if returns true
+   */
+  if?: IfFunction;
+
+  /**
+   * Only extract if this selector exists in context
+   */
+  ifExists?: string;
+
+  /**
+   * Only extract if this selector does NOT exist in context
+   */
+  ifNotExists?: string;
+
+  /**
+   * Array slice operation [start, end]
+   * Applied after unique but before limit
+   */
+  slice?: [number, number];
+
+  /**
+   * Limit number of items in array
+   * Applied after unique and slice
+   */
+  limit?: number;
+
+  /**
+   * Remove duplicate values from array
+   * Applied before slice and limit
+   */
+  unique?: boolean;
+
+  /**
+   * Flatten nested arrays
+   * - true or 1: Flatten one level
+   * - number: Flatten N levels
+   */
+  flatten?: boolean | number;
+
+  /**
+   * Validation function - must return true for value to be accepted
+   */
+  validate?: ValidateFunction;
+
+  /**
+   * Field is required - throws error if missing or empty
+   */
+  required?: boolean;
+
+  /**
+   * Parse HTML table
+   */
+  table?: TableOptions;
 }
 
 /**
@@ -165,7 +297,110 @@ export interface EasyScrapeOptions {
    * Additional Cheerio load options
    */
   cheerioOptions?: cheerio.CheerioOptions;
+
+  /**
+   * Base URL for resolving relative URLs
+   * Used when resolveUrl option is true on fields
+   */
+  baseUrl?: string;
 }
+
+/**
+ * Helper functions for common transformations
+ */
+export const helpers: {
+  /**
+   * Parse number from string, removing non-numeric characters
+   */
+  toNumber: (val: any) => number | null;
+
+  /**
+   * Parse integer from string, removing non-numeric characters
+   */
+  toInt: (val: any) => number | null;
+
+  /**
+   * Convert value to Date object
+   */
+  toDate: (val: any) => Date;
+
+  /**
+   * Convert string to boolean
+   * Accepts: 'true', 'yes', '1', 'on' (case-insensitive)
+   */
+  toBoolean: (val: any) => boolean;
+
+  /**
+   * Extract first URL from text
+   */
+  extractUrl: (val: any) => string | null;
+
+  /**
+   * Extract first email address from text
+   */
+  extractEmail: (val: any) => string | null;
+
+  /**
+   * Strip HTML tags and return plain text
+   */
+  stripHtml: (html: string) => string;
+
+  /**
+   * Parse JSON string
+   */
+  parseJson: (val: string) => any | null;
+
+  /**
+   * Capitalize first letter, lowercase rest
+   */
+  capitalize: (val: any) => string;
+
+  /**
+   * Convert string to URL-friendly slug
+   */
+  slug: (val: any) => string;
+};
+
+/**
+ * Schema presets for common patterns
+ */
+export const presets: {
+  /**
+   * Extract href from link
+   * @param selector - CSS selector (default: 'a')
+   */
+  link: (selector?: string) => ScrapeOptions;
+
+  /**
+   * Extract src and alt from image
+   * @param selector - CSS selector (default: 'img')
+   */
+  image: (selector?: string) => ScrapeOptions;
+
+  /**
+   * Extract meta tag content by name
+   * @param name - Meta tag name attribute
+   */
+  meta: (name: string) => ScrapeOptions;
+
+  /**
+   * Extract Open Graph meta tag
+   * @param property - OG property (without 'og:' prefix)
+   */
+  ogMeta: (property: string) => ScrapeOptions;
+
+  /**
+   * Extract Twitter Card meta tag
+   * @param name - Twitter meta name (without 'twitter:' prefix)
+   */
+  twitterMeta: (name: string) => ScrapeOptions;
+
+  /**
+   * Extract and parse JSON-LD structured data
+   * @param selector - CSS selector (default: 'script[type="application/ld+json"]')
+   */
+  jsonLd: (selector?: string) => ScrapeOptions;
+};
 
 /**
  * easyScrape
