@@ -1,4 +1,4 @@
-import { easyScrape, helpers, presets } from './lib/index.js';
+import { easyScrape, helpers, presets, pluck, extractAll, registerRef, clearRefs, createRef } from './lib/index.js';
 
 // ============================================
 // 1. BASIC STRING SELECTOR
@@ -1615,4 +1615,83 @@ console.log('60. Edge Case - Empty Values:', result60);
 // { emptyWithDefault: '', whitespaceWithDefault: '', missingWithDefault: 'Not Found' }
 
 
-console.log('\n✅ All tests completed!');
+console.log('\n========== NEW FEATURES TESTS ==========');
+
+
+// ============================================
+// 61. PLUCK - Quick one-liner
+// ============================================
+const html61 = `<h1 class="title">Hello World</h1>`;
+
+const result61 = pluck(html61, '.title');
+console.log('61. Pluck:', result61);
+// 'Hello World'
+
+
+// ============================================
+// 62. EXTRACT ALL - All elements
+// ============================================
+const html62 = `<li>Item 1</li><li>Item 2</li><li>Item 3</li>`;
+
+const result62 = extractAll(html62, 'li');
+console.log('62. Extract All:', result62.length);
+// 3
+
+
+// ============================================
+// 63. REGISTER REF - Schema reuse
+// ============================================
+clearRefs();
+registerRef('link', { selector: 'a', attr: 'href' });
+
+const html63 = `<a href="/page">Link</a>`;
+
+const result63 = easyScrape(html63, {
+  url: createRef('link')
+});
+console.log('63. Register Ref:', result63);
+// { url: '/page' }
+
+clearRefs();
+
+
+// ============================================
+// 64. DEBUG MODE
+// ============================================
+const html64 = `<div class="item">Text</div>`;
+
+const result64 = easyScrape(html64, {
+  text: '.item'
+}, { debug: true });
+console.log('64. Debug Mode:', result64);
+// { text: 'Text' }
+
+
+// ============================================
+// 65. WHITESPACE - collapse mode
+// ============================================
+const html65 = `<div class="text">  Hello    World   </div>`;
+
+const result65 = easyScrape(html65, {
+  collapse: { selector: '.text', whitespace: 'collapse' },
+  preserve: { selector: '.text', whitespace: 'preserve', trimValue: false }
+});
+console.log('65. Whitespace:', result65);
+// { collapse: 'Hello World', preserve: '  Hello    World   ' }
+
+
+// ============================================
+// 66. MALFORMED HTML - graceful handling
+// ============================================
+const html66 = `<div><script>bad</script><style>ugly</style><span>Good</span></div>`;
+
+const result66 = easyScrape(html66, {
+  text: 'span'
+}, { xmlMode: false });  // Will try fallback
+console.log('66. Malformed:', result66);
+// { text: 'Good' }
+
+
+console.log('\n✅ All new features tests completed!');
+
+console.log('\n✅ ALL TESTS COMPLETED!');

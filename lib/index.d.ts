@@ -41,6 +41,11 @@ export type IfFunction = ($: cheerio.CheerioAPI, context?: cheerio.Cheerio<cheer
 export type TextMode = 'text' | 'ownText' | 'deepText';
 
 /**
+ * Whitespace handling mode
+ */
+export type WhitespaceMode = 'normal' | 'collapse' | 'preserve';
+
+/**
  * Sibling navigation direction
  */
 export type SiblingDirection = 'next' | 'prev' | 'nextAll' | 'prevAll';
@@ -268,10 +273,33 @@ export interface ScrapeOptions {
    */
   required?: boolean;
 
-  /**
-   * Parse HTML table
-   */
+/**
+ * Parse HTML table
+ */
   table?: TableOptions;
+
+  /**
+   * Decode HTML entities for this field
+   */
+  decodeEntities?: boolean;
+
+  /**
+   * Extract all text nodes as array
+   */
+  textnodes?: boolean;
+
+  /**
+   * Whitespace handling mode
+   * - 'normal': trim
+   * - 'collapse': collapse whitespace to single space
+   * - 'preserve': keep all whitespace
+   */
+  whitespace?: WhitespaceMode;
+
+  /**
+   * Schema reference name (for reuse with registerRef)
+   */
+  $ref?: string;
 }
 
 /**
@@ -303,6 +331,11 @@ export interface EasyScrapeOptions {
    * Used when resolveUrl option is true on fields
    */
   baseUrl?: string;
+
+  /**
+   * Enable debug logging
+   */
+  debug?: boolean;
 }
 
 /**
@@ -415,6 +448,52 @@ export declare function easyScrape(
   schema: ScrapeSchema,
   options?: EasyScrapeOptions
 ): Record<string, any>;
+
+/**
+ * Quick one-liner extraction - pass selector string directly
+ * @param input - HTML string or cheerio instance
+ * @param selector - CSS selector
+ * @param options - Parsing options
+ * @returns Extracted text/value
+ */
+export declare function pluck(
+  input: string | cheerio.CheerioAPI,
+  selector: string,
+  options?: EasyScrapeOptions
+): any;
+
+/**
+ * Extract all matching elements as array without schema wrapper
+ * @param input - HTML string or cheerio instance
+ * @param selector - CSS selector
+ * @param options - Parsing options
+ * @returns Array of Cheerio elements
+ */
+export declare function extractAll(
+  input: string | cheerio.CheerioAPI,
+  selector: string,
+  options?: EasyScrapeOptions
+): cheerio.Cheerio<cheerio.AnyNode>[];
+
+/**
+ * Create schema reference for reuse
+ * @param name - Reference name
+ * @param schema - Schema to reference
+ * @returns Reference object
+ */
+export declare function createRef(name: string, schema: ScrapeOptions): { $ref: string };
+
+/**
+ * Register a schema for reference reuse
+ * @param name - Reference name
+ * @param schema - Schema to register
+ */
+export declare function registerRef(name: string, schema: ScrapeOptions): void;
+
+/**
+ * Clear all registered schema references
+ */
+export declare function clearRefs(): void;
 
 declare const _default: typeof easyScrape;
 export default _default;
